@@ -1,23 +1,37 @@
-import logo from './logo.svg';
-import './App.css';
+import logo from "./logo.svg";
+import "./App.css";
+import { useEffect, useRef } from "react";
 
 function App() {
+  const ws = useRef(null);
+
+  useEffect(() => {
+    ws.current = new WebSocket("ws://localhost:5000");
+
+    ws.current.onopen = () => {
+      console.log("Connected to server");
+    };
+
+    ws.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log("Received from server:", data);
+    };
+
+    return () => {
+      ws.current.close();
+    };
+  }, []);
+
+  const takeScreenshot = () => {
+    if (ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify({ type: "takeScreenshot" }));
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Playwright Remote Control</h1>
+      <button onClick={takeScreenshot}>Take Screenshot</button>
     </div>
   );
 }
